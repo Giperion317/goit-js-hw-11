@@ -7,6 +7,7 @@ export default class NewsApiService {
   constructor() {
     this.searchQuery = '';
     this.page = 1;
+    this.per_page = 20;
   }
 
   async getGalery() {
@@ -17,12 +18,12 @@ export default class NewsApiService {
         image_type: 'photo',
         orientation: 'horizontal',
         safesearch: 'true',
-        per_page: 40,
+        per_page: this.per_page,
         page: this.page,
       },
     };
     const pictures = await axios.get(`${BASE_URL}?`, options);
-    return pictures.data.hits;
+    return pictures.data;
   }
 
   incrementPage() {

@@ -1,3 +1,5 @@
+import './css/styles.css';
+
 import NewsApiService from './news-servise';
 
 const searchForm = document.querySelector('.search-form');
@@ -24,14 +26,17 @@ function onSearch(event) {
 
   newsApiService
     .getGalery()
-    .then(pictures => {
-      console.log(pictures);
-      if (pictures.length === 0) {
+    .then(({ hits, totalHits }) => {
+      if (hits.length === 0) {
         console.log(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       }
-      createGallery(pictures);
+      if (totalHits / newsApiService.per_page > 1) {
+        loadMoreBtn.classList.remove('invisible');
+      }
+      console.log(hits);
+      createGallery(hits);
     })
     .catch(error => console.log(error));
 }
@@ -40,9 +45,15 @@ function onLoadMore() {
   newsApiService.incrementPage();
   newsApiService
     .getGalery()
-    .then(pictures => {
-      console.log(pictures);
-      createGallery(pictures);
+    .then(({ hits, totalHits }) => {
+      console.log(Math.ceil(totalHits / newsApiService.per_page));
+      if (
+        Math.ceil(totalHits / newsApiService.per_page) === newsApiService.page
+      ) {
+        loadMoreBtn.classList.add('invisible');
+      }
+      console.log(hits);
+      createGallery(hits);
     })
     .catch(error => console.log(error));
 }
@@ -59,7 +70,7 @@ function createGallery(pictures) {
         comments,
         downloads,
       }) => `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+  <img src="${webformatURL}" alt="${tags}" loading="lazy" class="image-card"/>
   <div class="info">
     <p class="info-item">
     <b>Likes</b><span class="info-value">${likes}</span>
