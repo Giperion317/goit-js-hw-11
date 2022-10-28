@@ -7,7 +7,7 @@ export default class NewsApiService {
   constructor() {
     this.searchQuery = '';
     this.page = 1;
-    this.per_page = 20;
+    this.per_page = 40;
   }
 
   async getGalery() {

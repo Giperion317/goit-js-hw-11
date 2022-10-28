@@ -1,4 +1,7 @@
 import './css/styles.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 import NewsApiService from './news-servise';
 
@@ -17,7 +20,7 @@ function onSearch(event) {
 
   if (newsApiService.query === '') {
     clearGallery();
-    console.log('Fill in the search bar!');
+    Notify.info('Fill in the search bar!');
     return;
   }
 
@@ -28,17 +31,16 @@ function onSearch(event) {
     .getGalery()
     .then(({ hits, totalHits }) => {
       if (hits.length === 0) {
-        console.log(
+        Notify.failure(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       }
       if (totalHits / newsApiService.per_page > 1) {
         loadMoreBtn.classList.remove('invisible');
       }
-      console.log(hits);
       createGallery(hits);
     })
-    .catch(error => console.log(error));
+    .catch(error => Notify.failure(error));
 }
 
 function onLoadMore() {
@@ -46,16 +48,18 @@ function onLoadMore() {
   newsApiService
     .getGalery()
     .then(({ hits, totalHits }) => {
-      console.log(Math.ceil(totalHits / newsApiService.per_page));
       if (
         Math.ceil(totalHits / newsApiService.per_page) === newsApiService.page
       ) {
         loadMoreBtn.classList.add('invisible');
+        Notify.info(
+          "We're sorry, but you've reached the end of search results."
+        );
       }
-      console.log(hits);
       createGallery(hits);
+      flowScroll();
     })
-    .catch(error => console.log(error));
+    .catch(error => Notify.failure(error));
 }
 
 function createGallery(pictures) {
@@ -70,7 +74,9 @@ function createGallery(pictures) {
         comments,
         downloads,
       }) => `<div class="photo-card">
+      <a href="${largeImageURL}" class="gallery-item">
   <img src="${webformatURL}" alt="${tags}" loading="lazy" class="image-card"/>
+  </a>
   <div class="info">
     <p class="info-item">
     <b>Likes</b><span class="info-value">${likes}</span>
@@ -87,11 +93,32 @@ function createGallery(pictures) {
   </div>
 </div>`
     )
-    .join();
+    .join('');
 
   gallery.insertAdjacentHTML('beforeend', markup);
+
+  liteBox();
 }
 
 function clearGallery() {
   gallery.innerHTML = '';
+}
+
+function liteBox() {
+  const liteBox = new SimpleLightbox('.gallery-item', {
+    captionsData: 'alt',
+    captionDelay: 250,
+  });
+  liteBox.refresh();
+}
+
+function flowScroll() {
+  const { height: cardHeight } = document
+    .querySelector('.gallery')
+    .firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: cardHeight * 3,
+    behavior: 'smooth',
+  });
 }
